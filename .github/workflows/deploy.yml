@@ -18,7 +18,7 @@ jobs:
 
       - name: Build and run Docker Compose
         run: |
-          docker-compose -f docker-compose.yml up -d --build
+          docker-compose -f docker-compose.yaml up -d --build
           sleep 30
           ./query_autocomplete.sh "balaniferuos"
 
