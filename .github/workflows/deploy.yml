@@ -21,15 +21,19 @@ jobs:
           docker compose -f docker-compose.yaml up -d --build
           sleep 30
           ./query_autocomplete.sh "balaniferuos"
+          
+      - name: Save SSH Key
+        run: |
+          echo "$SSH_PRIVATE_KEY" > ssh_key.pem
+          chmod 600 ssh_key.pem
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Copy Docker Compose file to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -i "$SSH_PRIVATE_KEY" docker-compose.yaml ec2-user@3.83.247.202:/home/ec2-user/docker-compose.yml
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          scp -o StrictHostKeyChecking=no -i ssh_key.pem docker-compose.yaml ec2-user@3.83.247.202:/home/ec2-user/docker-compose.yaml
 
       - name: Deploy to Remote EC2 Instance
         run: |
-          ssh -o StrictHostKeyChecking=no -i "$SSH_PRIVATE_KEY" ec2-user@3.83.247.202 'docker-compose -f /home/ec2-user/docker-compose.yml up -d --build'
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh -o StrictHostKeyChecking=no -i ssh_key.pem ec2-user@3.83.247.202 'docker-compose -f /home/ec2-user/docker-compose.yaml up -d --build'
+      
