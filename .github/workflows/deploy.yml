@@ -1,0 +1,29 @@
+name: HSA 25 Homework Autocomplete CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and run Docker Compose
+        run: |
+          docker-compose -f docker-compose.yml up -d --build
+          sleep 30
+          ./query_autocomplete.sh "balaniferuos"
+
+      - name: Deploy to Remote EC2 Instance
+        run: |
+          ssh -o StrictHostKeyChecking=no -i "$SSH_PRIVATE_KEY" ec2-user@3.83.247.202 'docker-compose -f docker-compose.yaml up -d --build'
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
